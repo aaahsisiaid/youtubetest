@@ -2,12 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>Custom YouTube Player</title>
+<title>Ultra Custom YouTube Player</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <style>
 
@@ -17,120 +16,220 @@
     box-sizing:border-box;
 }
 
-body{
-    background:
-        radial-gradient(circle at top,#1d1d1d,#090909 70%);
-    color:white;
-    font-family:"Inter",sans-serif;
-    height:100vh;
-    overflow:hidden;
-}
-
-.app{
+html,body{
     width:100%;
     height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:
+        Inter,
+        system-ui,
+        sans-serif;
+}
+
+/* 背景 */
+
+.bg{
+    position:fixed;
+    inset:0;
+
+    background:
+        radial-gradient(circle at top left,
+            #3d003d,
+            transparent 30%),
+
+        radial-gradient(circle at bottom right,
+            #001a3d,
+            transparent 30%),
+
+        #050505;
+
+    filter:blur(0px);
+}
+
+/* 全体 */
+
+.player-shell{
+    position:fixed;
+    inset:0;
+
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
-.player-card{
-    width:min(1400px,95vw);
-    border-radius:28px;
+/* 動画本体 */
+
+.player-wrap{
+
+    position:relative;
+
+    width:min(1600px,96vw);
+    aspect-ratio:16/9;
+
     overflow:hidden;
-    background:rgba(20,20,20,.7);
-    backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:34px;
+
+    background:#000;
+
     box-shadow:
-        0 0 40px rgba(0,0,0,.5),
-        inset 0 0 0 1px rgba(255,255,255,.03);
+        0 30px 100px rgba(0,0,0,.8),
+        inset 0 0 0 1px rgba(255,255,255,.05);
+
 }
 
-.video-wrap{
-    position:relative;
-    aspect-ratio:16/9;
-    background:black;
-    overflow:hidden;
-}
+/* iframe巨大化 */
 
 #player{
-    width:100%;
-    height:100%;
+
+    position:absolute;
+
+    inset:-14%;
+
+    width:128%;
+    height:128%;
+
     pointer-events:none;
+
+    filter:
+        contrast(1.04)
+        saturate(1.08);
+
 }
 
-.overlay{
+/* UI */
+
+.ui{
+
     position:absolute;
     inset:0;
+
+    z-index:20;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
     background:
         linear-gradient(to top,
-            rgba(0,0,0,.8),
-            rgba(0,0,0,.2) 30%,
+            rgba(0,0,0,.92),
+            rgba(0,0,0,.3) 30%,
             transparent 60%);
+
     opacity:0;
+
     transition:.25s;
 }
 
-.video-wrap:hover .overlay{
+.player-wrap:hover .ui{
     opacity:1;
 }
 
-.center-play{
-    position:absolute;
-    inset:0;
+/* 上部 */
+
+.topbar{
+
+    padding:28px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+}
+
+.title{
+    font-size:24px;
+    font-weight:700;
+}
+
+.sub{
+    opacity:.5;
+    margin-top:6px;
+}
+
+/* 真ん中 */
+
+.center{
+    flex:1;
+
     display:flex;
     justify-content:center;
     align-items:center;
-    pointer-events:none;
 }
 
-.big-btn{
-    width:110px;
-    height:110px;
-    border-radius:50%;
-    background:rgba(255,255,255,.12);
-    backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.15);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:40px;
-    opacity:0;
-    transform:scale(.8);
-    transition:.25s;
-}
+.bigplay{
 
-.video-wrap:hover .big-btn{
-    opacity:1;
-    transform:scale(1);
-}
+    width:120px;
+    height:120px;
 
-.bottom-ui{
-    position:absolute;
-    bottom:0;
-    width:100%;
-    padding:22px;
-}
-
-.progress-wrap{
-    width:100%;
-    height:6px;
     border-radius:999px;
-    background:rgba(255,255,255,.15);
+
+    backdrop-filter:blur(20px);
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
     cursor:pointer;
+
+    transition:.25s;
+
+    font-size:48px;
+}
+
+.bigplay:hover{
+    transform:scale(1.08);
+}
+
+/* 下 */
+
+.bottom{
+
+    padding:28px;
+}
+
+.progress-area{
+
+    width:100%;
+    height:8px;
+
+    border-radius:999px;
+
+    background:
+        rgba(255,255,255,.12);
+
     overflow:hidden;
+
+    cursor:pointer;
 }
 
 .progress{
-    height:100%;
+
     width:0%;
-    background:
-        linear-gradient(90deg,#ff0033,#ff5f6d);
+    height:100%;
+
     border-radius:999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff0055,
+            #ff4d7d
+        );
 }
 
+/* controls */
+
 .controls{
-    margin-top:18px;
+
+    margin-top:20px;
+
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -144,170 +243,305 @@ body{
 }
 
 .btn{
-    width:44px;
-    height:44px;
-    border-radius:14px;
+
+    width:48px;
+    height:48px;
+
+    border-radius:16px;
+
     border:none;
-    background:rgba(255,255,255,.08);
+
+    background:
+        rgba(255,255,255,.08);
+
     color:white;
+
     cursor:pointer;
+
     transition:.2s;
+
     font-size:18px;
+
+    backdrop-filter:blur(10px);
 }
 
 .btn:hover{
-    background:rgba(255,255,255,.16);
     transform:translateY(-2px);
+    background:rgba(255,255,255,.14);
 }
 
 .time{
-    opacity:.8;
+    opacity:.7;
     font-size:14px;
-}
-
-.title{
-    font-size:18px;
-    font-weight:700;
-    margin-bottom:6px;
-}
-
-.sub{
-    font-size:13px;
-    opacity:.6;
-}
-
-.top{
-    position:absolute;
-    top:0;
-    width:100%;
-    padding:24px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-}
-
-.glow{
-    position:absolute;
-    width:500px;
-    height:500px;
-    background:#ff004c33;
-    filter:blur(120px);
-    border-radius:50%;
-    top:-200px;
-    right:-120px;
-    pointer-events:none;
 }
 
 .volume{
     width:100px;
 }
 
+/* マスク */
+
+.edge-mask-top{
+
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:90px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(0,0,0,.95),
+            transparent
+        );
+
+    z-index:11;
+
+    pointer-events:none;
+}
+
+.edge-mask-right{
+
+    position:absolute;
+    top:0;
+    right:0;
+
+    width:130px;
+    height:100%;
+
+    background:
+        linear-gradient(
+            to left,
+            rgba(0,0,0,.95),
+            transparent
+        );
+
+    z-index:11;
+
+    pointer-events:none;
+}
+
+.edge-mask-bottom{
+
+    position:absolute;
+    bottom:0;
+    left:0;
+
+    width:100%;
+    height:90px;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(0,0,0,.95),
+            transparent
+        );
+
+    z-index:11;
+
+    pointer-events:none;
+}
+
+/* ローディング */
+
+.loader{
+
+    position:absolute;
+    inset:0;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:50;
+
+    backdrop-filter:blur(10px);
+
+    background:rgba(0,0,0,.6);
+
+    transition:.4s;
+}
+
+.spinner{
+
+    width:70px;
+    height:70px;
+
+    border-radius:50%;
+
+    border:
+        4px solid rgba(255,255,255,.15);
+
+    border-top:
+        4px solid white;
+
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.hide{
+    opacity:0;
+    pointer-events:none;
+}
+
 input[type=range]{
-    accent-color:#ff3355;
+    accent-color:#ff3366;
 }
 
 </style>
 </head>
 <body>
 
-<div class="app">
+<div class="bg"></div>
 
-<div class="player-card">
+<div class="player-shell">
 
-<div class="video-wrap" id="videoWrap">
+<div class="player-wrap" id="wrap">
 
-<div class="glow"></div>
+    <!-- マスク -->
+    <div class="edge-mask-top"></div>
+    <div class="edge-mask-right"></div>
+    <div class="edge-mask-bottom"></div>
 
-<div id="player"></div>
+    <!-- プレイヤー -->
+    <div id="player"></div>
 
-<div class="overlay">
+    <!-- loading -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
 
-<div class="top">
+    <!-- UI -->
+    <div class="ui">
 
-<div>
-<div class="title">Custom UI Player</div>
-<div class="sub">YouTube Embedded API</div>
+        <div class="topbar">
+
+            <div>
+                <div class="title">
+                    Ultra Custom Player
+                </div>
+
+                <div class="sub">
+                    YouTube API Hidden UI Mode
+                </div>
+            </div>
+
+        </div>
+
+        <div class="center">
+
+            <div class="bigplay" id="bigplay">
+                ▶
+            </div>
+
+        </div>
+
+        <div class="bottom">
+
+            <div
+                class="progress-area"
+                id="progressArea">
+
+                <div
+                    class="progress"
+                    id="progress"></div>
+
+            </div>
+
+            <div class="controls">
+
+                <div class="left">
+
+                    <button class="btn" id="play">
+                        ▶
+                    </button>
+
+                    <button class="btn" id="mute">
+                        🔊
+                    </button>
+
+                    <input
+                        class="volume"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value="100"
+                        id="volume">
+
+                    <div
+                        class="time"
+                        id="time">
+
+                        0:00 / 0:00
+
+                    </div>
+
+                </div>
+
+                <div class="right">
+
+                    <button
+                        class="btn"
+                        id="fullscreen">
+
+                        ⛶
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 </div>
-
-<div class="center-play">
-<div class="big-btn" id="centerBtn">
-▶
-</div>
-</div>
-
-<div class="bottom-ui">
-
-<div class="progress-wrap" id="progressWrap">
-<div class="progress" id="progress"></div>
-</div>
-
-<div class="controls">
-
-<div class="left">
-
-<button class="btn" id="playBtn">
-▶
-</button>
-
-<button class="btn" id="muteBtn">
-🔊
-</button>
-
-<input
-class="volume"
-type="range"
-min="0"
-max="100"
-value="100"
-id="volume"
->
-
-<div class="time" id="time">
-0:00 / 0:00
-</div>
-
-</div>
-
-<div class="right">
-
-<button class="btn" id="fullscreenBtn">
-⛶
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 
 let player;
-let playing = false;
+let playing=false;
 
 function onYouTubeIframeAPIReady(){
 
-    player = new YT.Player('player',{
+    player =
+        new YT.Player("player",{
 
-        videoId:'dQw4w9WgXcQ',
+        videoId:"dQw4w9WgXcQ",
 
         playerVars:{
+
+            autoplay:1,
+
             controls:0,
-            modestbranding:1,
+
+            disablekb:1,
+
+            fs:0,
+
             rel:0,
-            showinfo:0
+
+            modestbranding:1,
+
+            playsinline:1,
+
+            iv_load_policy:3,
+
+            cc_load_policy:0,
+
+            autohide:1,
+
+            enablejsapi:1
+
         },
 
         events:{
@@ -320,6 +554,8 @@ function onYouTubeIframeAPIReady(){
 
 function onReady(){
 
+    loader.classList.add("hide");
+
     updateLoop();
 
 }
@@ -328,21 +564,26 @@ function updateLoop(){
 
     setInterval(()=>{
 
-        if(!player || !player.getDuration) return;
+        if(!player?.getDuration) return;
 
-        const current = player.getCurrentTime();
-        const duration = player.getDuration();
+        const cur =
+            player.getCurrentTime();
 
-        const percent = (current/duration)*100;
+        const dur =
+            player.getDuration();
 
-        progress.style.width = percent+"%";
+        const per =
+            (cur/dur)*100;
+
+        progress.style.width =
+            per+"%";
 
         time.innerText =
-            format(current)
+            format(cur)
             +" / "+
-            format(duration);
+            format(dur);
 
-    },200);
+    },150);
 
 }
 
@@ -352,15 +593,15 @@ function togglePlay(){
 
         player.pauseVideo();
 
-        playBtn.innerHTML="▶";
-        centerBtn.innerHTML="▶";
+        play.innerHTML="▶";
+        bigplay.innerHTML="▶";
 
     }else{
 
         player.playVideo();
 
-        playBtn.innerHTML="⏸";
-        centerBtn.innerHTML="⏸";
+        play.innerHTML="⏸";
+        bigplay.innerHTML="⏸";
 
     }
 
@@ -368,31 +609,22 @@ function togglePlay(){
 
 }
 
-playBtn.onclick=togglePlay;
-centerBtn.onclick=togglePlay;
+play.onclick=togglePlay;
+bigplay.onclick=togglePlay;
 
-videoWrap.onclick=(e)=>{
-
-    if(
-        e.target.id==="videoWrap" ||
-        e.target.className==="overlay"
-    ){
-        togglePlay();
-    }
-
-};
-
-muteBtn.onclick=()=>{
+mute.onclick=()=>{
 
     if(player.isMuted()){
 
         player.unMute();
-        muteBtn.innerHTML="🔊";
+
+        mute.innerHTML="🔊";
 
     }else{
 
         player.mute();
-        muteBtn.innerHTML="🔇";
+
+        mute.innerHTML="🔇";
 
     }
 
@@ -404,26 +636,29 @@ volume.oninput=(e)=>{
 
 };
 
-progressWrap.onclick=(e)=>{
+progressArea.onclick=(e)=>{
 
     const rect =
-        progressWrap.getBoundingClientRect();
+        progressArea.getBoundingClientRect();
 
-    const x = e.clientX - rect.left;
+    const x =
+        e.clientX - rect.left;
 
-    const percent = x / rect.width;
+    const per =
+        x / rect.width;
 
-    const duration = player.getDuration();
-
-    player.seekTo(duration * percent,true);
+    player.seekTo(
+        player.getDuration()*per,
+        true
+    );
 
 };
 
-fullscreenBtn.onclick=()=>{
+fullscreen.onclick=()=>{
 
     if(!document.fullscreenElement){
 
-        document.documentElement.requestFullscreen();
+        wrap.requestFullscreen();
 
     }else{
 
@@ -437,8 +672,11 @@ function format(sec){
 
     sec=Math.floor(sec);
 
-    const m=Math.floor(sec/60);
-    const s=sec%60;
+    const m=
+        Math.floor(sec/60);
+
+    const s=
+        sec%60;
 
     return `${m}:${String(s).padStart(2,"0")}`;
 
