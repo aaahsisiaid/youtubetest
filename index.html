@@ -235,7 +235,7 @@ body{
     background:
         rgba(255,255,255,.12);
 
-    overflow:hidden;
+    overflow:visible;
 
     cursor:pointer;
 
@@ -255,6 +255,66 @@ body{
             #ff0055,
             #ff4d7d
         );
+}
+
+/* preview */
+
+.preview{
+
+    position:absolute;
+
+    bottom:22px;
+    left:0;
+
+    transform:translateX(-50%);
+
+    width:220px;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    background:
+        rgba(10,10,10,.95);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(20px);
+
+    opacity:0;
+
+    transition:.12s;
+
+    pointer-events:none;
+
+    z-index:500;
+}
+
+.preview.show{
+    opacity:1;
+}
+
+.preview img{
+
+    width:100%;
+    aspect-ratio:16/9;
+
+    object-fit:cover;
+
+    display:block;
+}
+
+.previewTime{
+
+    padding:10px;
+
+    font-size:13px;
+
+    text-align:center;
+
+    background:
+        rgba(255,255,255,.04);
 }
 
 /* controls */
@@ -639,6 +699,21 @@ input[type=range]{
                     class="progress"
                     id="progress"></div>
 
+                <!-- preview -->
+                <div class="preview" id="preview">
+
+                    <img id="previewImg">
+
+                    <div
+                        class="previewTime"
+                        id="previewTime">
+
+                        0:00
+
+                    </div>
+
+                </div>
+
             </div>
 
             <div class="controls">
@@ -707,6 +782,9 @@ document.addEventListener("contextmenu",e=>{
     e.preventDefault();
 });
 
+const videoId =
+    "dQw4w9WgXcQ";
+
 let player;
 let playing=false;
 
@@ -773,6 +851,15 @@ const skipLeft =
 const skipRight =
     document.getElementById("skipRight");
 
+const preview =
+    document.getElementById("preview");
+
+const previewImg =
+    document.getElementById("previewImg");
+
+const previewTime =
+    document.getElementById("previewTime");
+
 /* youtube */
 
 function onYouTubeIframeAPIReady(){
@@ -780,7 +867,7 @@ function onYouTubeIframeAPIReady(){
     player =
         new YT.Player("player",{
 
-        videoId:"dQw4w9WgXcQ",
+        videoId:videoId,
 
         playerVars:{
 
@@ -1057,6 +1144,47 @@ progressArea.onclick=(e)=>{
     );
 
 };
+
+/* preview */
+
+progressArea.addEventListener("mousemove",(e)=>{
+
+    const rect =
+        progressArea.getBoundingClientRect();
+
+    const x =
+        e.clientX - rect.left;
+
+    const percent =
+        Math.max(
+            0,
+            Math.min(1,x/rect.width)
+        );
+
+    const duration =
+        player.getDuration();
+
+    const previewSec =
+        duration * percent;
+
+    preview.classList.add("show");
+
+    preview.style.left =
+        x+"px";
+
+    previewTime.innerHTML =
+        format(previewSec);
+
+    previewImg.src =
+        `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+});
+
+progressArea.addEventListener("mouseleave",()=>{
+
+    preview.classList.remove("show");
+
+});
 
 /* fullscreen */
 
