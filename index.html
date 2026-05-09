@@ -802,6 +802,7 @@ let playing=false;
 
 let holdTimeout;
 let holdSpeeding=false;
+let holdTriggered=false;
 let prevSpeed=1;
 
 let lastTap=0;
@@ -992,6 +993,11 @@ bigplay.onclick=togglePlay;
 
 wrap.addEventListener("click",(e)=>{
 
+    if(holdTriggered){
+        holdTriggered=false;
+        return;
+    }
+
     if(
         settings.contains(e.target) ||
         settingsBtn.contains(e.target) ||
@@ -1085,7 +1091,11 @@ function showSkip(el){
 
 function startHold(){
 
+    holdTriggered=false;
+
     holdTimeout=setTimeout(()=>{
+
+        holdTriggered=true;
 
         holdSpeeding=true;
 
@@ -1202,13 +1212,21 @@ progressArea.addEventListener("mousemove",(e)=>{
 
     /*
       storyboard preview
+      動画によっては存在しない
     */
 
-    const frame =
+    const storyboardIndex =
         Math.floor(previewSec/5);
 
     previewImg.src =
-        `https://i.ytimg.com/sb/${videoId}/storyboard3_L2/M${frame}.jpg`;
+`https://i.ytimg.com/sb/${videoId}/storyboard3_L2/default.jpg#${storyboardIndex}`;
+
+    previewImg.onerror=()=>{
+
+        previewImg.src =
+            `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+
+    };
 
 });
 
