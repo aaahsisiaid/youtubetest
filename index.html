@@ -1,3 +1,5 @@
+<!-- 変更点だけじゃなく全文最新版 -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -43,8 +45,6 @@ html,body{
             transparent 30%),
 
         #050505;
-
-    filter:blur(0px);
 }
 
 /* 全体 */
@@ -58,7 +58,7 @@ html,body{
     align-items:center;
 }
 
-/* 動画本体 */
+/* 動画 */
 
 .player-wrap{
 
@@ -79,7 +79,7 @@ html,body{
 
 }
 
-/* iframe巨大化 */
+/* iframe */
 
 #player{
 
@@ -114,7 +114,7 @@ html,body{
     background:
         linear-gradient(to top,
             rgba(0,0,0,.92),
-            rgba(0,0,0,.3) 30%,
+            rgba(0,0,0,.25) 30%,
             transparent 60%);
 
     opacity:0;
@@ -126,7 +126,7 @@ html,body{
     opacity:1;
 }
 
-/* 上部 */
+/* top */
 
 .topbar{
 
@@ -147,9 +147,10 @@ html,body{
     margin-top:6px;
 }
 
-/* 真ん中 */
+/* center */
 
 .center{
+
     flex:1;
 
     display:flex;
@@ -181,16 +182,17 @@ html,body{
     transition:.25s;
 
     font-size:48px;
+
+    user-select:none;
 }
 
 .bigplay:hover{
     transform:scale(1.08);
 }
 
-/* 下 */
+/* bottom */
 
 .bottom{
-
     padding:28px;
 }
 
@@ -207,6 +209,8 @@ html,body{
     overflow:hidden;
 
     cursor:pointer;
+
+    position:relative;
 }
 
 .progress{
@@ -263,6 +267,8 @@ html,body{
     font-size:18px;
 
     backdrop-filter:blur(10px);
+
+    user-select:none;
 }
 
 .btn:hover{
@@ -273,6 +279,29 @@ html,body{
 .time{
     opacity:.7;
     font-size:14px;
+}
+
+/* select */
+
+.speed{
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    border:none;
+
+    height:42px;
+
+    border-radius:12px;
+
+    padding:0 12px;
+
+    outline:none;
+}
+
+.speed option{
+    background:#111;
 }
 
 .volume{
@@ -343,7 +372,7 @@ html,body{
     pointer-events:none;
 }
 
-/* ローディング */
+/* loader */
 
 .loader{
 
@@ -394,6 +423,54 @@ input[type=range]{
     accent-color:#ff3366;
 }
 
+/* settings */
+
+.settings{
+
+    position:absolute;
+
+    right:20px;
+    bottom:95px;
+
+    width:220px;
+
+    background:
+        rgba(15,15,15,.95);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    border-radius:20px;
+
+    padding:18px;
+
+    z-index:100;
+
+    backdrop-filter:blur(20px);
+
+    display:none;
+}
+
+.settings.active{
+    display:block;
+}
+
+.settings h3{
+    margin-bottom:14px;
+    font-size:16px;
+}
+
+.settings-row{
+    margin-bottom:14px;
+}
+
+.settings-row label{
+    display:block;
+    margin-bottom:8px;
+    opacity:.7;
+    font-size:13px;
+}
+
 </style>
 </head>
 <body>
@@ -404,17 +481,38 @@ input[type=range]{
 
 <div class="player-wrap" id="wrap">
 
-    <!-- マスク -->
     <div class="edge-mask-top"></div>
     <div class="edge-mask-right"></div>
     <div class="edge-mask-bottom"></div>
 
-    <!-- プレイヤー -->
     <div id="player"></div>
 
-    <!-- loading -->
+    <!-- loader -->
     <div class="loader" id="loader">
         <div class="spinner"></div>
+    </div>
+
+    <!-- settings -->
+    <div class="settings" id="settings">
+
+        <h3>Settings</h3>
+
+        <div class="settings-row">
+            <label>Playback Speed</label>
+
+            <select class="speed" id="speed">
+                <option value="0.25">0.25x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.75">1.75x</option>
+                <option value="2">2x</option>
+            </select>
+
+        </div>
+
     </div>
 
     <!-- UI -->
@@ -423,13 +521,15 @@ input[type=range]{
         <div class="topbar">
 
             <div>
+
                 <div class="title">
                     Ultra Custom Player
                 </div>
 
                 <div class="sub">
-                    YouTube API Hidden UI Mode
+                    Hidden YouTube UI
                 </div>
+
             </div>
 
         </div>
@@ -488,6 +588,14 @@ input[type=range]{
 
                     <button
                         class="btn"
+                        id="settingsBtn">
+
+                        ⚙
+
+                    </button>
+
+                    <button
+                        class="btn"
                         id="fullscreen">
 
                         ⛶
@@ -511,6 +619,10 @@ input[type=range]{
 let player;
 let playing=false;
 
+let holdTimeout;
+let holdSpeeding=false;
+let prevSpeed=1;
+
 function onYouTubeIframeAPIReady(){
 
     player =
@@ -520,7 +632,7 @@ function onYouTubeIframeAPIReady(){
 
         playerVars:{
 
-            autoplay:1,
+            autoplay:0,
 
             controls:0,
 
@@ -587,30 +699,95 @@ function updateLoop(){
 
 }
 
+function playVideo(){
+
+    player.playVideo();
+
+    playing=true;
+
+    play.innerHTML="⏸";
+    bigplay.innerHTML="⏸";
+
+}
+
+function pauseVideo(){
+
+    player.pauseVideo();
+
+    playing=false;
+
+    play.innerHTML="▶";
+    bigplay.innerHTML="▶";
+
+}
+
 function togglePlay(){
 
     if(playing){
 
-        player.pauseVideo();
-
-        play.innerHTML="▶";
-        bigplay.innerHTML="▶";
+        pauseVideo();
 
     }else{
 
-        player.playVideo();
-
-        play.innerHTML="⏸";
-        bigplay.innerHTML="⏸";
+        playVideo();
 
     }
-
-    playing=!playing;
 
 }
 
 play.onclick=togglePlay;
 bigplay.onclick=togglePlay;
+
+/* シングルクリック停止 */
+
+wrap.addEventListener("click",(e)=>{
+
+    if(
+        e.target.id==="player" ||
+        e.target.id==="wrap"
+    ){
+        togglePlay();
+    }
+
+});
+
+/* 長押し2倍速 */
+
+function startHold(){
+
+    holdTimeout=setTimeout(()=>{
+
+        holdSpeeding=true;
+
+        prevSpeed=player.getPlaybackRate();
+
+        player.setPlaybackRate(2);
+
+    },300);
+
+}
+
+function stopHold(){
+
+    clearTimeout(holdTimeout);
+
+    if(holdSpeeding){
+
+        player.setPlaybackRate(prevSpeed);
+
+        holdSpeeding=false;
+    }
+
+}
+
+wrap.addEventListener("mousedown",startHold);
+wrap.addEventListener("mouseup",stopHold);
+wrap.addEventListener("mouseleave",stopHold);
+
+wrap.addEventListener("touchstart",startHold);
+wrap.addEventListener("touchend",stopHold);
+
+/* mute */
 
 mute.onclick=()=>{
 
@@ -630,11 +807,15 @@ mute.onclick=()=>{
 
 };
 
+/* volume */
+
 volume.oninput=(e)=>{
 
     player.setVolume(e.target.value);
 
 };
+
+/* progress */
 
 progressArea.onclick=(e)=>{
 
@@ -654,6 +835,8 @@ progressArea.onclick=(e)=>{
 
 };
 
+/* fullscreen */
+
 fullscreen.onclick=()=>{
 
     if(!document.fullscreenElement){
@@ -667,6 +850,70 @@ fullscreen.onclick=()=>{
     }
 
 };
+
+/* settings */
+
+settingsBtn.onclick=()=>{
+
+    settings.classList.toggle("active");
+
+};
+
+/* speed */
+
+speed.onchange=(e)=>{
+
+    player.setPlaybackRate(
+        Number(e.target.value)
+    );
+
+};
+
+/* keyboard shortcuts */
+
+document.addEventListener("keydown",(e)=>{
+
+    if(e.code==="Space"){
+
+        e.preventDefault();
+
+        togglePlay();
+
+    }
+
+    if(e.code==="ArrowRight"){
+
+        player.seekTo(
+            player.getCurrentTime()+5,
+            true
+        );
+
+    }
+
+    if(e.code==="ArrowLeft"){
+
+        player.seekTo(
+            player.getCurrentTime()-5,
+            true
+        );
+
+    }
+
+    if(e.code==="KeyM"){
+
+        mute.click();
+
+    }
+
+    if(e.code==="KeyF"){
+
+        fullscreen.click();
+
+    }
+
+});
+
+/* format */
 
 function format(sec){
 
