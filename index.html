@@ -14,6 +14,11 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
+
+    -webkit-user-select:none;
+    user-select:none;
+
+    -webkit-touch-callout:none;
 }
 
 html,body{
@@ -21,6 +26,7 @@ html,body{
     height:100%;
     overflow:hidden;
     background:#000;
+
     font-family:
         Inter,
         system-ui,
@@ -40,8 +46,6 @@ body{
         #050505;
 }
 
-/* 全体 */
-
 .player-shell{
     position:fixed;
     inset:0;
@@ -52,8 +56,6 @@ body{
 
     padding:20px;
 }
-
-/* 動画 */
 
 .player-wrap{
 
@@ -72,9 +74,8 @@ body{
         0 30px 100px rgba(0,0,0,.8),
         inset 0 0 0 1px rgba(255,255,255,.05);
 
+    touch-action:manipulation;
 }
-
-/* iframe */
 
 #player{
 
@@ -90,10 +91,7 @@ body{
     filter:
         contrast(1.04)
         saturate(1.08);
-
 }
-
-/* UI */
 
 .ui{
 
@@ -143,8 +141,6 @@ body{
     opacity:.5;
     margin-top:6px;
 }
-
-/* status */
 
 .status{
 
@@ -217,8 +213,6 @@ body{
     transition:.25s;
 
     font-size:48px;
-
-    user-select:none;
 }
 
 .bigplay:hover{
@@ -311,8 +305,6 @@ body{
     gap:8px;
 
     backdrop-filter:blur(10px);
-
-    user-select:none;
 }
 
 .btn:hover{
@@ -328,8 +320,6 @@ body{
 .volume{
     width:100px;
 }
-
-/* speed */
 
 .speed{
 
@@ -403,7 +393,7 @@ body{
     font-size:13px;
 }
 
-/* mask */
+/* masks */
 
 .edge-mask-top{
 
@@ -421,8 +411,6 @@ body{
         );
 
     z-index:11;
-
-    pointer-events:none;
 }
 
 .edge-mask-right{
@@ -442,8 +430,6 @@ body{
         );
 
     z-index:11;
-
-    pointer-events:none;
 }
 
 .edge-mask-bottom{
@@ -463,8 +449,6 @@ body{
         );
 
     z-index:11;
-
-    pointer-events:none;
 }
 
 /* loader */
@@ -518,311 +502,46 @@ input[type=range]{
     accent-color:#ff3366;
 }
 
-/* mobile */
+/* skip popup */
 
-@media (max-width:700px){
-
-    .controls{
-
-        flex-direction:column;
-        align-items:flex-start;
-        gap:14px;
-    }
-
-    .left,
-    .right{
-
-        width:100%;
-        flex-wrap:wrap;
-    }
-
-    .topbar{
-
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
-}
-    /* ===========================
-   追加・変更部分のみ
-=========================== */
-
-/* ===========================
-   CSS追加
-=========================== */
-
-body{
-    -webkit-user-select:none;
-    user-select:none;
-
-    -webkit-touch-callout:none;
-}
-
-.player-wrap *{
-    -webkit-user-select:none;
-    user-select:none;
-}
-
-/* 左右スキップ表示 */
-
-.skip-indicator{
+.skip-popup{
 
     position:absolute;
 
     top:50%;
-
     transform:translateY(-50%);
 
-    width:140px;
-    height:140px;
+    padding:16px 24px;
 
-    border-radius:999px;
+    border-radius:20px;
 
     background:
-        rgba(255,255,255,.08);
+        rgba(0,0,0,.7);
 
     backdrop-filter:blur(20px);
-
-    border:
-        1px solid rgba(255,255,255,.08);
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
 
     font-size:26px;
     font-weight:700;
 
-    z-index:300;
-
     opacity:0;
+
+    transition:.2s;
 
     pointer-events:none;
 
-    transition:.25s;
+    z-index:200;
 }
 
-.skip-indicator.show{
+.skip-popup.show{
     opacity:1;
 }
 
 .skip-left{
-    left:40px;
+    left:60px;
 }
 
 .skip-right{
-    right:40px;
-}
-
-/* ===========================
-   HTML追加
-   player-wrap の中
-=========================== */
-
-<div
-class="skip-indicator skip-left"
-id="skipLeft">
-
-⏪ 15s
-
-</div>
-
-<div
-class="skip-indicator skip-right"
-id="skipRight">
-
-15s ⏩
-
-</div>
-
-/* ===========================
-   JS追加
-=========================== */
-
-const skipLeft =
-    document.getElementById("skipLeft");
-
-const skipRight =
-    document.getElementById("skipRight");
-
-/* ===========================
-   右クリック禁止
-=========================== */
-
-document.addEventListener(
-    "contextmenu",
-    e=>e.preventDefault()
-);
-
-/* ===========================
-   ドラッグ防止
-=========================== */
-
-document.addEventListener(
-    "dragstart",
-    e=>e.preventDefault()
-);
-
-/* ===========================
-   status修正
-=========================== */
-
-function updateStatus(){
-
-    if(holdSpeeding){
-
-        statusBox.innerHTML=
-            "⚡ 2x SPEED";
-
-        statusBox.classList.add("fast");
-
-        return;
-    }
-
-    const speed =
-        player.getPlaybackRate();
-
-    if(speed===1){
-
-        statusBox.innerHTML=
-            "NORMAL";
-
-        statusBox.classList.remove("fast");
-
-    }else{
-
-        statusBox.innerHTML=
-            `⚡ ${speed}x SPEED`;
-
-        statusBox.classList.add("fast");
-
-    }
-
-}
-
-/* ===========================
-   長押し解除修正
-=========================== */
-
-function stopHold(){
-
-    clearTimeout(holdTimeout);
-
-    if(holdSpeeding){
-
-        player.setPlaybackRate(prevSpeed);
-
-        holdSpeeding=false;
-
-        updateStatus();
-
-    }
-
-}
-
-/* ===========================
-   設定外クリックで閉じる
-=========================== */
-
-document.addEventListener("click",(e)=>{
-
-    if(
-        !settings.contains(e.target) &&
-        !settingsBtn.contains(e.target)
-    ){
-
-        settings.classList.remove("active");
-
-    }
-
-});
-
-/* ===========================
-   ダブルタップスキップ
-=========================== */
-
-let lastTap=0;
-
-wrap.addEventListener("click",(e)=>{
-
-    const now = Date.now();
-
-    const diff = now-lastTap;
-
-    lastTap=now;
-
-    if(diff > 300) return;
-
-    const rect =
-        wrap.getBoundingClientRect();
-
-    const x =
-        e.clientX - rect.left;
-
-    const half =
-        rect.width / 2;
-
-    /* 左 */
-
-    if(x < half){
-
-        player.seekTo(
-
-            Math.max(
-                0,
-                player.getCurrentTime()-15
-            ),
-
-            true
-
-        );
-
-        showSkip("left");
-
-    }
-
-    /* 右 */
-
-    else{
-
-        player.seekTo(
-
-            Math.min(
-                player.getDuration(),
-                player.getCurrentTime()+15
-            ),
-
-            true
-
-        );
-
-        showSkip("right");
-
-    }
-
-});
-
-/* ===========================
-   skip表示
-=========================== */
-
-function showSkip(dir){
-
-    const el =
-        dir==="left"
-        ? skipLeft
-        : skipRight;
-
-    el.classList.add("show");
-
-    clearTimeout(el.hideTimeout);
-
-    el.hideTimeout=setTimeout(()=>{
-
-        el.classList.remove("show");
-
-    },450);
-
+    right:60px;
 }
 
 </style>
@@ -833,13 +552,20 @@ function showSkip(dir){
 
 <div class="player-wrap" id="wrap">
 
-    <!-- mask -->
     <div class="edge-mask-top"></div>
     <div class="edge-mask-right"></div>
     <div class="edge-mask-bottom"></div>
 
-    <!-- player -->
     <div id="player"></div>
+
+    <!-- skip -->
+    <div class="skip-popup skip-left" id="skipLeft">
+        ⏪ 15s
+    </div>
+
+    <div class="skip-popup skip-right" id="skipRight">
+        15s ⏩
+    </div>
 
     <!-- loader -->
     <div class="loader" id="loader">
@@ -977,12 +703,19 @@ function showSkip(dir){
 
 <script>
 
+document.addEventListener("contextmenu",e=>{
+    e.preventDefault();
+});
+
 let player;
 let playing=false;
 
 let holdTimeout;
 let holdSpeeding=false;
 let prevSpeed=1;
+
+let lastTap=0;
+let lastSide="";
 
 /* elements */
 
@@ -1033,6 +766,12 @@ const playIcon =
 
 const muteIcon =
     document.getElementById("muteIcon");
+
+const skipLeft =
+    document.getElementById("skipLeft");
+
+const skipRight =
+    document.getElementById("skipRight");
 
 /* youtube */
 
@@ -1155,18 +894,80 @@ function togglePlay(){
 play.onclick=togglePlay;
 bigplay.onclick=togglePlay;
 
-/* click */
+/* double click skip */
 
 wrap.addEventListener("click",(e)=>{
 
     if(
-        e.target.id==="player" ||
-        e.target.id==="wrap"
+        settings.contains(e.target) ||
+        settingsBtn.contains(e.target)
     ){
-        togglePlay();
+        return;
     }
 
+    settings.classList.remove("active");
+
+    const now = Date.now();
+
+    const rect =
+        wrap.getBoundingClientRect();
+
+    const x =
+        e.clientX - rect.left;
+
+    const side =
+        x < rect.width/2
+        ? "left"
+        : "right";
+
+    if(
+        now-lastTap < 300 &&
+        side===lastSide
+    ){
+
+        if(side==="left"){
+
+            player.seekTo(
+                player.getCurrentTime()-15,
+                true
+            );
+
+            showSkip(skipLeft);
+
+        }else{
+
+            player.seekTo(
+                player.getCurrentTime()+15,
+                true
+            );
+
+            showSkip(skipRight);
+
+        }
+
+        lastTap=0;
+
+        return;
+    }
+
+    lastTap=now;
+    lastSide=side;
+
 });
+
+/* popup */
+
+function showSkip(el){
+
+    el.classList.add("show");
+
+    setTimeout(()=>{
+
+        el.classList.remove("show");
+
+    },450);
+
+}
 
 /* long press 2x */
 
@@ -1180,10 +981,7 @@ function startHold(){
 
         player.setPlaybackRate(2);
 
-        statusBox.innerHTML=
-            "⚡ 2x SPEED";
-
-        statusBox.classList.add("fast");
+        updateStatus(2);
 
     },300);
 
@@ -1195,11 +993,11 @@ function stopHold(){
 
     if(holdSpeeding){
 
-        player.setPlaybackRate(prevSpeed);
-
         holdSpeeding=false;
 
-        updateStatus();
+        player.setPlaybackRate(prevSpeed);
+
+        updateStatus(prevSpeed);
 
     }
 
@@ -1278,7 +1076,9 @@ fullscreen.onclick=()=>{
 
 /* settings */
 
-settingsBtn.onclick=()=>{
+settingsBtn.onclick=(e)=>{
+
+    e.stopPropagation();
 
     settings.classList.toggle("active");
 
@@ -1293,16 +1093,13 @@ speed.onchange=(e)=>{
 
     player.setPlaybackRate(val);
 
-    updateStatus();
+    updateStatus(val);
 
 };
 
 /* status */
 
-function updateStatus(){
-
-    const speed =
-        player.getPlaybackRate();
+function updateStatus(speed){
 
     if(speed===1){
 
