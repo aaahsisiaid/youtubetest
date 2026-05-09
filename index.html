@@ -1,5 +1,3 @@
-<!-- 変更点だけじゃなく全文最新版 -->
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -29,12 +27,7 @@ html,body{
         sans-serif;
 }
 
-/* 背景 */
-
-.bg{
-    position:fixed;
-    inset:0;
-
+body{
     background:
         radial-gradient(circle at top left,
             #3d003d,
@@ -56,6 +49,8 @@ html,body{
     display:flex;
     justify-content:center;
     align-items:center;
+
+    padding:20px;
 }
 
 /* 動画 */
@@ -135,6 +130,8 @@ html,body{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
+
+    gap:20px;
 }
 
 .title{
@@ -145,6 +142,44 @@ html,body{
 .sub{
     opacity:.5;
     margin-top:6px;
+}
+
+/* status */
+
+.status{
+
+    padding:10px 16px;
+
+    border-radius:999px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(20px);
+
+    font-size:13px;
+    letter-spacing:.08em;
+
+    opacity:.85;
+
+    transition:.2s;
+}
+
+.status.fast{
+
+    background:
+        rgba(255,0,80,.16);
+
+    border:
+        1px solid rgba(255,0,80,.35);
+
+    box-shadow:
+        0 0 30px rgba(255,0,80,.2);
+
+    color:#ff7ba5;
 }
 
 /* center */
@@ -243,13 +278,17 @@ html,body{
 .right{
     display:flex;
     align-items:center;
-    gap:14px;
+    gap:10px;
 }
 
 .btn{
 
-    width:48px;
+    width:auto;
+    min-width:48px;
+
     height:48px;
+
+    padding:0 16px;
 
     border-radius:16px;
 
@@ -264,7 +303,12 @@ html,body{
 
     transition:.2s;
 
-    font-size:18px;
+    font-size:15px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
 
     backdrop-filter:blur(10px);
 
@@ -281,11 +325,16 @@ html,body{
     font-size:14px;
 }
 
-/* select */
+.volume{
+    width:100px;
+}
+
+/* speed */
 
 .speed{
 
-    background:rgba(255,255,255,.08);
+    background:
+        rgba(255,255,255,.08);
 
     color:white;
 
@@ -298,17 +347,63 @@ html,body{
     padding:0 12px;
 
     outline:none;
+
+    font-size:14px;
 }
 
 .speed option{
     background:#111;
 }
 
-.volume{
-    width:100px;
+/* settings */
+
+.settings{
+
+    position:absolute;
+
+    right:20px;
+    bottom:95px;
+
+    width:220px;
+
+    background:
+        rgba(15,15,15,.95);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    border-radius:20px;
+
+    padding:18px;
+
+    z-index:100;
+
+    backdrop-filter:blur(20px);
+
+    display:none;
 }
 
-/* マスク */
+.settings.active{
+    display:block;
+}
+
+.settings h3{
+    margin-bottom:14px;
+    font-size:16px;
+}
+
+.settings-row{
+    margin-bottom:14px;
+}
+
+.settings-row label{
+    display:block;
+    margin-bottom:8px;
+    opacity:.7;
+    font-size:13px;
+}
+
+/* mask */
 
 .edge-mask-top{
 
@@ -423,68 +518,46 @@ input[type=range]{
     accent-color:#ff3366;
 }
 
-/* settings */
+/* mobile */
 
-.settings{
+@media (max-width:700px){
 
-    position:absolute;
+    .controls{
 
-    right:20px;
-    bottom:95px;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:14px;
+    }
 
-    width:220px;
+    .left,
+    .right{
 
-    background:
-        rgba(15,15,15,.95);
+        width:100%;
+        flex-wrap:wrap;
+    }
 
-    border:
-        1px solid rgba(255,255,255,.08);
+    .topbar{
 
-    border-radius:20px;
+        flex-direction:column;
+        align-items:flex-start;
+    }
 
-    padding:18px;
-
-    z-index:100;
-
-    backdrop-filter:blur(20px);
-
-    display:none;
-}
-
-.settings.active{
-    display:block;
-}
-
-.settings h3{
-    margin-bottom:14px;
-    font-size:16px;
-}
-
-.settings-row{
-    margin-bottom:14px;
-}
-
-.settings-row label{
-    display:block;
-    margin-bottom:8px;
-    opacity:.7;
-    font-size:13px;
 }
 
 </style>
 </head>
 <body>
 
-<div class="bg"></div>
-
 <div class="player-shell">
 
 <div class="player-wrap" id="wrap">
 
+    <!-- mask -->
     <div class="edge-mask-top"></div>
     <div class="edge-mask-right"></div>
     <div class="edge-mask-bottom"></div>
 
+    <!-- player -->
     <div id="player"></div>
 
     <!-- loader -->
@@ -498,9 +571,11 @@ input[type=range]{
         <h3>Settings</h3>
 
         <div class="settings-row">
+
             <label>Playback Speed</label>
 
             <select class="speed" id="speed">
+
                 <option value="0.25">0.25x</option>
                 <option value="0.5">0.5x</option>
                 <option value="0.75">0.75x</option>
@@ -509,6 +584,7 @@ input[type=range]{
                 <option value="1.5">1.5x</option>
                 <option value="1.75">1.75x</option>
                 <option value="2">2x</option>
+
             </select>
 
         </div>
@@ -530,6 +606,10 @@ input[type=range]{
                     Hidden YouTube UI
                 </div>
 
+            </div>
+
+            <div class="status" id="status">
+                NORMAL
             </div>
 
         </div>
@@ -559,11 +639,11 @@ input[type=range]{
                 <div class="left">
 
                     <button class="btn" id="play">
-                        ▶
+                        <span id="playIcon">▶</span>
                     </button>
 
                     <button class="btn" id="mute">
-                        🔊
+                        <span id="muteIcon">🔊</span>
                     </button>
 
                     <input
@@ -590,7 +670,7 @@ input[type=range]{
                         class="btn"
                         id="settingsBtn">
 
-                        ⚙
+                        ⚙ Settings
 
                     </button>
 
@@ -598,7 +678,7 @@ input[type=range]{
                         class="btn"
                         id="fullscreen">
 
-                        ⛶
+                        ⛶ Full
 
                     </button>
 
@@ -622,6 +702,58 @@ let playing=false;
 let holdTimeout;
 let holdSpeeding=false;
 let prevSpeed=1;
+
+/* elements */
+
+const loader =
+    document.getElementById("loader");
+
+const wrap =
+    document.getElementById("wrap");
+
+const progress =
+    document.getElementById("progress");
+
+const progressArea =
+    document.getElementById("progressArea");
+
+const time =
+    document.getElementById("time");
+
+const play =
+    document.getElementById("play");
+
+const mute =
+    document.getElementById("mute");
+
+const volume =
+    document.getElementById("volume");
+
+const fullscreen =
+    document.getElementById("fullscreen");
+
+const bigplay =
+    document.getElementById("bigplay");
+
+const settingsBtn =
+    document.getElementById("settingsBtn");
+
+const settings =
+    document.getElementById("settings");
+
+const speed =
+    document.getElementById("speed");
+
+const statusBox =
+    document.getElementById("status");
+
+const playIcon =
+    document.getElementById("playIcon");
+
+const muteIcon =
+    document.getElementById("muteIcon");
+
+/* youtube */
 
 function onYouTubeIframeAPIReady(){
 
@@ -672,6 +804,8 @@ function onReady(){
 
 }
 
+/* loop */
+
 function updateLoop(){
 
     setInterval(()=>{
@@ -699,13 +833,15 @@ function updateLoop(){
 
 }
 
+/* play */
+
 function playVideo(){
 
     player.playVideo();
 
     playing=true;
 
-    play.innerHTML="⏸";
+    playIcon.innerHTML="⏸";
     bigplay.innerHTML="⏸";
 
 }
@@ -716,7 +852,7 @@ function pauseVideo(){
 
     playing=false;
 
-    play.innerHTML="▶";
+    playIcon.innerHTML="▶";
     bigplay.innerHTML="▶";
 
 }
@@ -738,7 +874,7 @@ function togglePlay(){
 play.onclick=togglePlay;
 bigplay.onclick=togglePlay;
 
-/* シングルクリック停止 */
+/* click */
 
 wrap.addEventListener("click",(e)=>{
 
@@ -751,7 +887,7 @@ wrap.addEventListener("click",(e)=>{
 
 });
 
-/* 長押し2倍速 */
+/* long press 2x */
 
 function startHold(){
 
@@ -762,6 +898,11 @@ function startHold(){
         prevSpeed=player.getPlaybackRate();
 
         player.setPlaybackRate(2);
+
+        statusBox.innerHTML=
+            "⚡ 2x SPEED";
+
+        statusBox.classList.add("fast");
 
     },300);
 
@@ -776,6 +917,9 @@ function stopHold(){
         player.setPlaybackRate(prevSpeed);
 
         holdSpeeding=false;
+
+        updateStatus();
+
     }
 
 }
@@ -795,13 +939,13 @@ mute.onclick=()=>{
 
         player.unMute();
 
-        mute.innerHTML="🔊";
+        muteIcon.innerHTML="🔊";
 
     }else{
 
         player.mute();
 
-        mute.innerHTML="🔇";
+        muteIcon.innerHTML="🔇";
 
     }
 
@@ -863,13 +1007,41 @@ settingsBtn.onclick=()=>{
 
 speed.onchange=(e)=>{
 
-    player.setPlaybackRate(
-        Number(e.target.value)
-    );
+    const val =
+        Number(e.target.value);
+
+    player.setPlaybackRate(val);
+
+    updateStatus();
 
 };
 
-/* keyboard shortcuts */
+/* status */
+
+function updateStatus(){
+
+    const speed =
+        player.getPlaybackRate();
+
+    if(speed===1){
+
+        statusBox.innerHTML=
+            "NORMAL";
+
+        statusBox.classList.remove("fast");
+
+    }else{
+
+        statusBox.innerHTML=
+            `⚡ ${speed}x SPEED`;
+
+        statusBox.classList.add("fast");
+
+    }
+
+}
+
+/* keyboard */
 
 document.addEventListener("keydown",(e)=>{
 
