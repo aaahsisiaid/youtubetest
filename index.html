@@ -212,7 +212,7 @@ body{
 
     transition:.25s;
 
-    font-size:48px;
+    font-size:42px;
 }
 
 .bigplay:hover{
@@ -303,6 +303,8 @@ body{
     object-fit:cover;
 
     display:block;
+
+    background:#000;
 }
 
 .previewTime{
@@ -576,11 +578,11 @@ input[type=range]{
     border-radius:20px;
 
     background:
-        rgba(0,0,0,.7);
+        rgba(0,0,0,.72);
 
     backdrop-filter:blur(20px);
 
-    font-size:26px;
+    font-size:22px;
     font-weight:700;
 
     opacity:0;
@@ -590,6 +592,10 @@ input[type=range]{
     pointer-events:none;
 
     z-index:200;
+
+    display:flex;
+    align-items:center;
+    gap:10px;
 }
 
 .skip-popup.show{
@@ -602,6 +608,10 @@ input[type=range]{
 
 .skip-right{
     right:60px;
+}
+
+.skipIcon{
+    font-size:28px;
 }
 
 </style>
@@ -620,11 +630,13 @@ input[type=range]{
 
     <!-- skip -->
     <div class="skip-popup skip-left" id="skipLeft">
-        ⏪ 15s
+        <span class="skipIcon">⏪</span>
+        <span>15s</span>
     </div>
 
     <div class="skip-popup skip-right" id="skipRight">
-        15s ⏩
+        <span>15s</span>
+        <span class="skipIcon">⏩</span>
     </div>
 
     <!-- loader -->
@@ -721,11 +733,11 @@ input[type=range]{
                 <div class="left">
 
                     <button class="btn" id="play">
-                        <span id="playIcon">▶</span>
+                        ▶
                     </button>
 
                     <button class="btn" id="mute">
-                        <span id="muteIcon">🔊</span>
+                        🔊
                     </button>
 
                     <input
@@ -794,6 +806,7 @@ let prevSpeed=1;
 
 let lastTap=0;
 let lastSide="";
+let previewTimer;
 
 /* elements */
 
@@ -838,12 +851,6 @@ const speed =
 
 const statusBox =
     document.getElementById("status");
-
-const playIcon =
-    document.getElementById("playIcon");
-
-const muteIcon =
-    document.getElementById("muteIcon");
 
 const skipLeft =
     document.getElementById("skipLeft");
@@ -948,7 +955,7 @@ function playVideo(){
 
     playing=true;
 
-    playIcon.innerHTML="⏸";
+    play.innerHTML="⏸";
     bigplay.innerHTML="⏸";
 
 }
@@ -959,7 +966,7 @@ function pauseVideo(){
 
     playing=false;
 
-    playIcon.innerHTML="▶";
+    play.innerHTML="▶";
     bigplay.innerHTML="▶";
 
 }
@@ -981,13 +988,17 @@ function togglePlay(){
 play.onclick=togglePlay;
 bigplay.onclick=togglePlay;
 
-/* double click skip */
+/* click */
 
 wrap.addEventListener("click",(e)=>{
 
     if(
         settings.contains(e.target) ||
-        settingsBtn.contains(e.target)
+        settingsBtn.contains(e.target) ||
+        progressArea.contains(e.target) ||
+        e.target.closest(".btn") ||
+        e.target.closest(".speed") ||
+        e.target.closest(".volume")
     ){
         return;
     }
@@ -1007,10 +1018,14 @@ wrap.addEventListener("click",(e)=>{
         ? "left"
         : "right";
 
+    /* double click */
+
     if(
         now-lastTap < 300 &&
         side===lastSide
     ){
+
+        clearTimeout(previewTimer);
 
         if(side==="left"){
 
@@ -1037,6 +1052,16 @@ wrap.addEventListener("click",(e)=>{
         return;
     }
 
+    /* single click */
+
+    clearTimeout(previewTimer);
+
+    previewTimer=setTimeout(()=>{
+
+        togglePlay();
+
+    },310);
+
     lastTap=now;
     lastSide=side;
 
@@ -1056,7 +1081,7 @@ function showSkip(el){
 
 }
 
-/* long press 2x */
+/* long press */
 
 function startHold(){
 
@@ -1105,13 +1130,13 @@ mute.onclick=()=>{
 
         player.unMute();
 
-        muteIcon.innerHTML="🔊";
+        mute.innerHTML="🔊";
 
     }else{
 
         player.mute();
 
-        muteIcon.innerHTML="🔇";
+        mute.innerHTML="🔇";
 
     }
 
@@ -1175,8 +1200,15 @@ progressArea.addEventListener("mousemove",(e)=>{
     previewTime.innerHTML =
         format(previewSec);
 
+    /*
+      storyboard preview
+    */
+
+    const frame =
+        Math.floor(previewSec/5);
+
     previewImg.src =
-        `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        `https://i.ytimg.com/sb/${videoId}/storyboard3_L2/M${frame}.jpg`;
 
 });
 
@@ -1239,7 +1271,7 @@ function updateStatus(speed){
     }else{
 
         statusBox.innerHTML=
-            `⚡ ${speed}x SPEED`;
+            `${speed}x SPEED`;
 
         statusBox.classList.add("fast");
 
