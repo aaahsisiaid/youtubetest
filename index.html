@@ -665,7 +665,6 @@ input[type=range]{
 
     <div id="player"></div>
 
-    <!-- skip -->
     <div class="skip-popup skip-left" id="skipLeft">
 
         <svg viewBox="0 0 24 24">
@@ -686,12 +685,10 @@ input[type=range]{
 
     </div>
 
-    <!-- loader -->
     <div class="loader" id="loader">
         <div class="spinner"></div>
     </div>
 
-    <!-- settings -->
     <div class="settings" id="settings">
 
         <h3>Settings</h3>
@@ -717,7 +714,6 @@ input[type=range]{
 
     </div>
 
-    <!-- UI -->
     <div class="ui">
 
         <div class="topbar">
@@ -758,7 +754,6 @@ input[type=range]{
                     class="progress"
                     id="progress"></div>
 
-                <!-- preview -->
                 <div class="preview" id="preview">
 
                     <img id="previewImg">
@@ -866,6 +861,9 @@ let lastSide="";
 let previewTimer;
 
 let dragging=false;
+let isDraggingProgress=false;
+let ignoreWrapClick=false;
+let justClosedSettings=false;
 
 /* elements */
 
@@ -1012,6 +1010,8 @@ function updateLoop(){
 
         if(!player?.getDuration) return;
 
+        if(isDraggingProgress) return;
+
         const cur =
             player.getCurrentTime();
 
@@ -1075,14 +1075,77 @@ function togglePlay(){
 
 }
 
-play.onclick=togglePlay;
-bigplay.onclick=togglePlay;
+/* buttons */
+
+play.addEventListener("click",(e)=>{
+
+    e.stopPropagation();
+
+    ignoreWrapClick=true;
+
+    togglePlay();
+
+    setTimeout(()=>{
+
+        ignoreWrapClick=false;
+
+    },50);
+
+});
+
+bigplay.addEventListener("click",(e)=>{
+
+    e.stopPropagation();
+
+    ignoreWrapClick=true;
+
+    togglePlay();
+
+    setTimeout(()=>{
+
+        ignoreWrapClick=false;
+
+    },50);
+
+});
 
 /* click */
 
 wrap.addEventListener("click",(e)=>{
 
+    if(ignoreWrapClick) return;
+
+    if(isDraggingProgress) return;
+
     if(holdSpeeding) return;
+
+    /*
+      settings閉じた直後
+    */
+
+    if(justClosedSettings){
+
+        justClosedSettings=false;
+        return;
+
+    }
+
+    /*
+      settings外クリック
+    */
+
+    if(
+        settings.classList.contains("active") &&
+        !settings.contains(e.target) &&
+        !settingsBtn.contains(e.target)
+    ){
+
+        settings.classList.remove("active");
+
+        justClosedSettings=true;
+
+        return;
+    }
 
     if(
         settings.contains(e.target) ||
@@ -1094,8 +1157,6 @@ wrap.addEventListener("click",(e)=>{
     ){
         return;
     }
-
-    settings.classList.remove("active");
 
     const now = Date.now();
 
@@ -1146,7 +1207,10 @@ wrap.addEventListener("click",(e)=>{
 
     previewTimer=setTimeout(()=>{
 
-        if(!holdSpeeding){
+        if(
+            !holdSpeeding &&
+            !isDraggingProgress
+        ){
 
             togglePlay();
 
@@ -1277,8 +1341,19 @@ function seekFromEvent(e){
             Math.min(1,x/rect.width)
         );
 
+    const seekTime =
+        player.getDuration()*per;
+
+    progress.style.width =
+        (per*100)+"%";
+
+    time.innerText =
+        format(seekTime)
+        +" / "+
+        format(player.getDuration());
+
     player.seekTo(
-        player.getDuration()*per,
+        seekTime,
         true
     );
 
@@ -1286,7 +1361,9 @@ function seekFromEvent(e){
 
 progressArea.addEventListener("mousedown",(e)=>{
 
-    dragging=true;
+    e.stopPropagation();
+
+    isDraggingProgress=true;
 
     seekFromEvent(e);
 
@@ -1294,7 +1371,7 @@ progressArea.addEventListener("mousedown",(e)=>{
 
 document.addEventListener("mousemove",(e)=>{
 
-    if(!dragging) return;
+    if(!isDraggingProgress) return;
 
     seekFromEvent(e);
 
@@ -1302,13 +1379,23 @@ document.addEventListener("mousemove",(e)=>{
 
 document.addEventListener("mouseup",()=>{
 
-    dragging=false;
+    if(isDraggingProgress){
+
+        setTimeout(()=>{
+
+            isDraggingProgress=false;
+
+        },20);
+
+    }
 
 });
 
 progressArea.addEventListener("touchstart",(e)=>{
 
-    dragging=true;
+    e.stopPropagation();
+
+    isDraggingProgress=true;
 
     seekFromEvent(e);
 
@@ -1316,7 +1403,7 @@ progressArea.addEventListener("touchstart",(e)=>{
 
 document.addEventListener("touchmove",(e)=>{
 
-    if(!dragging) return;
+    if(!isDraggingProgress) return;
 
     seekFromEvent(e);
 
@@ -1324,7 +1411,15 @@ document.addEventListener("touchmove",(e)=>{
 
 document.addEventListener("touchend",()=>{
 
-    dragging=false;
+    if(isDraggingProgress){
+
+        setTimeout(()=>{
+
+            isDraggingProgress=false;
+
+        },20);
+
+    }
 
 });
 
