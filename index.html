@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>Custom Video Player</title>
+<title>Ultra Custom YouTube Player</title>
+
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <style>
 
@@ -23,7 +25,7 @@ html,body{
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#050505;
+    background:#000;
 
     font-family:
         Inter,
@@ -32,20 +34,27 @@ html,body{
 }
 
 body{
+    background:
+        radial-gradient(circle at top left,
+            #3d003d,
+            transparent 30%),
+
+        radial-gradient(circle at bottom right,
+            #001a3d,
+            transparent 30%),
+
+        #050505;
+}
+
+.player-shell{
+    position:fixed;
+    inset:0;
+
     display:flex;
     justify-content:center;
     align-items:center;
 
-    background:
-        radial-gradient(circle at top left,
-            #330033,
-            transparent 30%),
-
-        radial-gradient(circle at bottom right,
-            #001133,
-            transparent 30%),
-
-        #050505;
+    padding:20px;
 }
 
 .player-wrap{
@@ -55,51 +64,59 @@ body{
     width:min(1600px,96vw);
     aspect-ratio:16/9;
 
-    border-radius:30px;
-
     overflow:hidden;
+
+    border-radius:34px;
 
     background:#000;
 
     box-shadow:
-        0 30px 100px rgba(0,0,0,.8);
+        0 30px 100px rgba(0,0,0,.8),
+        inset 0 0 0 1px rgba(255,255,255,.05);
+
+    touch-action:manipulation;
 }
 
-video{
+#player{
 
-    width:100%;
-    height:100%;
+    position:absolute;
 
-    object-fit:cover;
+    inset:-14%;
 
-    background:#000;
+    width:128%;
+    height:128%;
+
+    pointer-events:none;
+
+    filter:
+        contrast(1.04)
+        saturate(1.08);
 }
 
-/* overlay */
-
-.overlay{
+.ui{
 
     position:absolute;
     inset:0;
+
+    z-index:20;
 
     display:flex;
     flex-direction:column;
     justify-content:space-between;
 
     background:
-        linear-gradient(
-            to top,
-            rgba(0,0,0,.9),
-            rgba(0,0,0,.2) 35%,
-            transparent 60%
-        );
+        linear-gradient(to top,
+            rgba(0,0,0,.92),
+            rgba(0,0,0,.25) 30%,
+            transparent 60%);
 
     opacity:0;
 
     transition:.25s;
 }
 
-.player-wrap:hover .overlay{
+.player-wrap:hover .ui,
+.player-wrap.show-ui .ui{
     opacity:1;
 }
 
@@ -107,16 +124,25 @@ video{
 
 .topbar{
 
-    padding:26px;
+    padding:28px;
 
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
+
+    gap:20px;
 }
 
 .title{
     font-size:24px;
     font-weight:700;
+    color:white;
+}
+
+.sub{
+    opacity:.5;
+    margin-top:6px;
+    color:white;
 }
 
 .status{
@@ -128,12 +154,33 @@ video{
     background:
         rgba(255,255,255,.08);
 
-    backdrop-filter:blur(20px);
-
     border:
         1px solid rgba(255,255,255,.08);
 
+    backdrop-filter:blur(20px);
+
     font-size:13px;
+    letter-spacing:.08em;
+
+    opacity:.85;
+
+    transition:.2s;
+
+    color:white;
+}
+
+.status.fast{
+
+    background:
+        rgba(255,0,80,.16);
+
+    border:
+        1px solid rgba(255,0,80,.35);
+
+    box-shadow:
+        0 0 30px rgba(255,0,80,.2);
+
+    color:#ff7ba5;
 }
 
 /* center */
@@ -149,28 +196,30 @@ video{
 
 .bigplay{
 
-    width:110px;
-    height:110px;
+    width:120px;
+    height:120px;
 
     border-radius:999px;
+
+    backdrop-filter:blur(20px);
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:
+        1px solid rgba(255,255,255,.08);
 
     display:flex;
     justify-content:center;
     align-items:center;
 
-    background:
-        rgba(255,255,255,.08);
-
-    backdrop-filter:blur(20px);
-
-    border:
-        1px solid rgba(255,255,255,.08);
-
     cursor:pointer;
 
-    transition:.2s;
+    transition:.25s;
 
-    font-size:40px;
+    font-size:42px;
+
+    color:white;
 }
 
 .bigplay:hover{
@@ -180,14 +229,10 @@ video{
 /* bottom */
 
 .bottom{
-    padding:24px;
+    padding:28px;
 }
 
-/* progress */
-
-.progress-wrap{
-
-    position:relative;
+.progress-area{
 
     width:100%;
     height:8px;
@@ -195,9 +240,13 @@ video{
     border-radius:999px;
 
     background:
-        rgba(255,255,255,.14);
+        rgba(255,255,255,.12);
+
+    overflow:visible;
 
     cursor:pointer;
+
+    position:relative;
 }
 
 .progress{
@@ -211,7 +260,7 @@ video{
         linear-gradient(
             90deg,
             #ff0055,
-            #ff4477
+            #ff4d7d
         );
 }
 
@@ -221,19 +270,19 @@ video{
 
     position:absolute;
 
-    bottom:24px;
+    bottom:22px;
     left:0;
 
     transform:translateX(-50%);
 
     width:220px;
 
-    overflow:hidden;
-
     border-radius:18px;
 
+    overflow:hidden;
+
     background:
-        rgba(10,10,10,.96);
+        rgba(10,10,10,.95);
 
     border:
         1px solid rgba(255,255,255,.08);
@@ -246,29 +295,37 @@ video{
 
     pointer-events:none;
 
-    z-index:200;
+    z-index:500;
 }
 
 .preview.show{
     opacity:1;
 }
 
-.preview canvas{
+.preview img{
 
     width:100%;
+    aspect-ratio:16/9;
+
+    object-fit:cover;
+
     display:block;
+
+    background:#000;
 }
 
-.preview-time{
+.previewTime{
 
     padding:10px;
 
-    text-align:center;
-
     font-size:13px;
+
+    text-align:center;
 
     background:
         rgba(255,255,255,.04);
+
+    color:white;
 }
 
 /* controls */
@@ -284,7 +341,6 @@ video{
 
 .left,
 .right{
-
     display:flex;
     align-items:center;
     gap:10px;
@@ -292,14 +348,16 @@ video{
 
 .btn{
 
+    width:auto;
     min-width:48px;
+
     height:48px;
 
     padding:0 16px;
 
-    border:none;
-
     border-radius:16px;
+
+    border:none;
 
     background:
         rgba(255,255,255,.08);
@@ -308,34 +366,72 @@ video{
 
     cursor:pointer;
 
-    backdrop-filter:blur(10px);
-
     transition:.2s;
 
     font-size:15px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+
+    backdrop-filter:blur(10px);
 }
 
 .btn:hover{
-
     transform:translateY(-2px);
+    background:rgba(255,255,255,.14);
+}
 
-    background:
-        rgba(255,255,255,.14);
+.icon-btn{
+
+    padding:0;
+
+    width:48px;
+}
+
+.icon-btn svg{
+
+    width:22px;
+    height:22px;
+
+    fill:white;
+
+    display:block;
 }
 
 .time{
-
+    opacity:.7;
     font-size:14px;
-
-    opacity:.75;
+    color:white;
 }
 
 .volume{
     width:100px;
 }
 
-input[type=range]{
-    accent-color:#ff3366;
+.speed{
+
+    background:
+        rgba(255,255,255,.08);
+
+    color:white;
+
+    border:none;
+
+    height:42px;
+
+    border-radius:12px;
+
+    padding:0 12px;
+
+    outline:none;
+
+    font-size:14px;
+}
+
+.speed option{
+    background:#111;
 }
 
 /* settings */
@@ -345,58 +441,105 @@ input[type=range]{
     position:absolute;
 
     right:20px;
-    bottom:100px;
+    bottom:95px;
 
     width:220px;
+
+    background:
+        rgba(15,15,15,.95);
+
+    border:
+        1px solid rgba(255,255,255,.08);
 
     border-radius:20px;
 
     padding:18px;
 
-    background:
-        rgba(15,15,15,.96);
-
-    border:
-        1px solid rgba(255,255,255,.08);
+    z-index:100;
 
     backdrop-filter:blur(20px);
 
     display:none;
-
-    z-index:300;
 }
 
 .settings.active{
     display:block;
 }
 
-.settings label{
-
-    display:block;
-
-    margin-bottom:8px;
-
-    opacity:.7;
-
-    font-size:13px;
+.settings h3{
+    margin-bottom:14px;
+    font-size:16px;
+    color:white;
 }
 
-.speed{
+.settings-row{
+    margin-bottom:14px;
+}
 
+.settings-row label{
+    display:block;
+    margin-bottom:8px;
+    opacity:.7;
+    font-size:13px;
+    color:white;
+}
+
+/* masks */
+
+.edge-mask-top{
+
+    position:absolute;
+    top:0;
+    left:0;
     width:100%;
-
-    height:42px;
-
-    border:none;
-
-    border-radius:12px;
+    height:90px;
 
     background:
-        rgba(255,255,255,.08);
+        linear-gradient(
+            to bottom,
+            rgba(0,0,0,.95),
+            transparent
+        );
 
-    color:white;
+    z-index:11;
+}
 
-    padding:0 12px;
+.edge-mask-right{
+
+    position:absolute;
+    top:0;
+    right:0;
+
+    width:130px;
+    height:100%;
+
+    background:
+        linear-gradient(
+            to left,
+            rgba(0,0,0,.95),
+            transparent
+        );
+
+    z-index:11;
+}
+
+.edge-mask-bottom{
+
+    position:absolute;
+    bottom:0;
+    left:0;
+
+    width:100%;
+    height:90px;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(0,0,0,.95),
+            transparent
+        );
+
+    z-index:11;
 }
 
 /* loader */
@@ -410,12 +553,13 @@ input[type=range]{
     justify-content:center;
     align-items:center;
 
-    background:
-        rgba(0,0,0,.6);
+    z-index:50;
 
     backdrop-filter:blur(10px);
 
-    z-index:100;
+    background:rgba(0,0,0,.6);
+
+    transition:.4s;
 }
 
 .spinner{
@@ -426,7 +570,7 @@ input[type=range]{
     border-radius:50%;
 
     border:
-        4px solid rgba(255,255,255,.12);
+        4px solid rgba(255,255,255,.15);
 
     border-top:
         4px solid white;
@@ -445,24 +589,30 @@ input[type=range]{
     pointer-events:none;
 }
 
-/* skip */
+input[type=range]{
+    accent-color:#ff3366;
+}
 
-.skip{
+/* skip popup */
+
+.skip-popup{
 
     position:absolute;
 
     top:50%;
-
     transform:translateY(-50%);
 
-    padding:16px 22px;
+    padding:16px 24px;
 
-    border-radius:18px;
+    border-radius:20px;
 
     background:
         rgba(0,0,0,.72);
 
     backdrop-filter:blur(20px);
+
+    font-size:22px;
+    font-weight:700;
 
     opacity:0;
 
@@ -470,89 +620,118 @@ input[type=range]{
 
     pointer-events:none;
 
-    font-size:22px;
-    font-weight:700;
+    z-index:200;
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    color:white;
 }
 
-.skip.show{
+.skip-popup.show{
     opacity:1;
 }
 
-.skip.left{
-    left:50px;
+.skip-left{
+    left:60px;
 }
 
-.skip.right{
-    right:50px;
+.skip-right{
+    right:60px;
+}
+
+.skip-popup svg{
+
+    width:28px;
+    height:28px;
+
+    fill:white;
+
+    flex:none;
 }
 
 </style>
 </head>
 <body>
 
+<div class="player-shell">
+
 <div class="player-wrap" id="wrap">
 
-    <!-- IMPORTANT -->
-    <!-- Cloudflare Worker等から取得したmp4 -->
+    <div class="edge-mask-top"></div>
+    <div class="edge-mask-right"></div>
+    <div class="edge-mask-bottom"></div>
 
-    <video
-        id="video"
-        preload="metadata"
-        playsinline>
+    <div id="player"></div>
 
-        <source
-            src="YOUR_VIDEO_URL.mp4"
-            type="video/mp4">
+    <!-- skip -->
+    <div class="skip-popup skip-left" id="skipLeft">
 
-    </video>
+        <svg viewBox="0 0 24 24">
+            <path d="M11 18V6L2.5 12zm9 0V6l-8.5 6z"/>
+        </svg>
+
+        <span>15s</span>
+
+    </div>
+
+    <div class="skip-popup skip-right" id="skipRight">
+
+        <span>15s</span>
+
+        <svg viewBox="0 0 24 24">
+            <path d="M4 18l8.5-6L4 6zm9 0l8.5-6L13 6z"/>
+        </svg>
+
+    </div>
 
     <!-- loader -->
-
     <div class="loader" id="loader">
         <div class="spinner"></div>
     </div>
 
-    <!-- skip -->
-
-    <div class="skip left" id="skipLeft">
-        -15s
-    </div>
-
-    <div class="skip right" id="skipRight">
-        +15s
-    </div>
-
     <!-- settings -->
-
     <div class="settings" id="settings">
 
-        <label>Playback Speed</label>
+        <h3>Settings</h3>
 
-        <select class="speed" id="speed">
+        <div class="settings-row">
 
-            <option value="0.25">0.25x</option>
-            <option value="0.5">0.5x</option>
-            <option value="0.75">0.75x</option>
-            <option value="1" selected>1x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-            <option value="1.75">1.75x</option>
-            <option value="2">2x</option>
+            <label>Playback Speed</label>
 
-        </select>
+            <select class="speed" id="speed">
+
+                <option value="0.25">0.25x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.75">1.75x</option>
+                <option value="2">2x</option>
+
+            </select>
+
+        </div>
 
     </div>
 
-    <!-- overlay -->
-
-    <div class="overlay">
-
-        <!-- top -->
+    <!-- UI -->
+    <div class="ui">
 
         <div class="topbar">
 
-            <div class="title">
-                Custom Player
+            <div>
+
+                <div class="title">
+                    Ultra Custom Player
+                </div>
+
+                <div class="sub">
+                    Hidden YouTube UI
+                </div>
+
             </div>
 
             <div class="status" id="status">
@@ -560,8 +739,6 @@ input[type=range]{
             </div>
 
         </div>
-
-        <!-- center -->
 
         <div class="center">
 
@@ -571,29 +748,23 @@ input[type=range]{
 
         </div>
 
-        <!-- bottom -->
-
         <div class="bottom">
 
-            <!-- progress -->
+            <div
+                class="progress-area"
+                id="progressArea">
 
-            <div class="progress-wrap" id="progressWrap">
-
-                <div class="progress" id="progress"></div>
+                <div
+                    class="progress"
+                    id="progress"></div>
 
                 <!-- preview -->
-
                 <div class="preview" id="preview">
 
-                    <canvas
-                        id="previewCanvas"
-                        width="320"
-                        height="180">
-
-                    </canvas>
+                    <img id="previewImg">
 
                     <div
-                        class="preview-time"
+                        class="previewTime"
                         id="previewTime">
 
                         0:00
@@ -604,31 +775,40 @@ input[type=range]{
 
             </div>
 
-            <!-- controls -->
-
             <div class="controls">
 
                 <div class="left">
 
-                    <button class="btn" id="play">
-                        ▶
+                    <button class="btn icon-btn" id="play">
+
+                        <svg id="playSvg" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+
                     </button>
 
-                    <button class="btn" id="mute">
-                        🔊
+                    <button class="btn icon-btn" id="mute">
+
+                        <svg id="muteSvg" viewBox="0 0 24 24">
+                            <path d="M3 10v4h4l5 5V5L7 10z"/>
+                        </svg>
+
                     </button>
 
                     <input
                         class="volume"
-                        id="volume"
                         type="range"
                         min="0"
-                        max="1"
-                        step="0.01"
-                        value="1">
+                        max="100"
+                        value="100"
+                        id="volume">
 
-                    <div class="time" id="time">
+                    <div
+                        class="time"
+                        id="time">
+
                         0:00 / 0:00
+
                     </div>
 
                 </div>
@@ -639,15 +819,17 @@ input[type=range]{
                         class="btn"
                         id="settingsBtn">
 
-                        ⚙ Settings
+                        Settings
 
                     </button>
 
                     <button
-                        class="btn"
+                        class="btn icon-btn"
                         id="fullscreen">
 
-                        ⛶ Full
+                        <svg viewBox="0 0 24 24">
+                            <path d="M7 14H5v5h5v-2H7zm0-4h2V7h3V5H5v5zm10 7h-3v2h5v-5h-2zm0-12V5h-5v2h3v3h2z"/>
+                        </svg>
 
                     </button>
 
@@ -661,33 +843,49 @@ input[type=range]{
 
 </div>
 
-<script>
+</div>
 
-/* disable */
+<script>
 
 document.addEventListener("contextmenu",e=>{
     e.preventDefault();
 });
 
-/* elements */
+const videoId =
+    "dQw4w9WgXcQ";
 
-const video =
-    document.getElementById("video");
+let player;
+let playing=false;
+
+let holdTimeout;
+let holdSpeeding=false;
+let prevSpeed=1;
+
+let lastTap=0;
+let lastSide="";
+let previewTimer;
+
+let dragging=false;
+
+/* elements */
 
 const loader =
     document.getElementById("loader");
 
+const wrap =
+    document.getElementById("wrap");
+
 const progress =
     document.getElementById("progress");
 
-const progressWrap =
-    document.getElementById("progressWrap");
+const progressArea =
+    document.getElementById("progressArea");
+
+const time =
+    document.getElementById("time");
 
 const play =
     document.getElementById("play");
-
-const bigplay =
-    document.getElementById("bigplay");
 
 const mute =
     document.getElementById("mute");
@@ -695,25 +893,22 @@ const mute =
 const volume =
     document.getElementById("volume");
 
-const time =
-    document.getElementById("time");
-
-const wrap =
-    document.getElementById("wrap");
-
 const fullscreen =
     document.getElementById("fullscreen");
 
-const settings =
-    document.getElementById("settings");
+const bigplay =
+    document.getElementById("bigplay");
 
 const settingsBtn =
     document.getElementById("settingsBtn");
 
+const settings =
+    document.getElementById("settings");
+
 const speed =
     document.getElementById("speed");
 
-const status =
+const statusBox =
     document.getElementById("status");
 
 const skipLeft =
@@ -725,63 +920,156 @@ const skipRight =
 const preview =
     document.getElementById("preview");
 
-const previewCanvas =
-    document.getElementById("previewCanvas");
-
-const previewCtx =
-    previewCanvas.getContext("2d");
+const previewImg =
+    document.getElementById("previewImg");
 
 const previewTime =
     document.getElementById("previewTime");
 
-/* state */
+const playSvg =
+    document.getElementById("playSvg");
 
-let lastTap=0;
-let lastSide="";
-let singleClickTimer;
+const muteSvg =
+    document.getElementById("muteSvg");
 
-let holdTimeout;
-let holdTriggered=false;
-let holdSpeeding=false;
-let prevSpeed=1;
+/* youtube */
 
-/* loader */
+function onYouTubeIframeAPIReady(){
 
-video.addEventListener("loadeddata",()=>{
+    player =
+        new YT.Player("player",{
+
+        videoId:videoId,
+
+        playerVars:{
+
+            autoplay:0,
+
+            controls:0,
+
+            disablekb:1,
+
+            fs:0,
+
+            rel:0,
+
+            modestbranding:1,
+
+            playsinline:1,
+
+            iv_load_policy:3,
+
+            cc_load_policy:0,
+
+            autohide:1,
+
+            enablejsapi:1
+
+        },
+
+        events:{
+            onReady:onReady
+        }
+
+    });
+
+}
+
+function onReady(){
 
     loader.classList.add("hide");
 
-});
+    updateLoop();
+
+}
+
+/* ui auto */
+
+let uiTimer;
+
+function showUI(){
+
+    wrap.classList.add("show-ui");
+
+    clearTimeout(uiTimer);
+
+    uiTimer=setTimeout(()=>{
+
+        wrap.classList.remove("show-ui");
+
+    },2500);
+
+}
+
+document.addEventListener("mousemove",showUI);
+document.addEventListener("touchstart",showUI);
+
+/* loop */
+
+function updateLoop(){
+
+    setInterval(()=>{
+
+        if(!player?.getDuration) return;
+
+        const cur =
+            player.getCurrentTime();
+
+        const dur =
+            player.getDuration();
+
+        const per =
+            (cur/dur)*100;
+
+        progress.style.width =
+            per+"%";
+
+        time.innerText =
+            format(cur)
+            +" / "+
+            format(dur);
+
+    },150);
+
+}
 
 /* play */
 
 function playVideo(){
 
-    video.play();
+    player.playVideo();
 
-    play.innerHTML="⏸";
-    bigplay.innerHTML="⏸";
+    playing=true;
+
+    playSvg.innerHTML=
+        `<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>`;
+
+    bigplay.innerHTML="Ⅱ";
 
 }
 
 function pauseVideo(){
 
-    video.pause();
+    player.pauseVideo();
 
-    play.innerHTML="▶";
+    playing=false;
+
+    playSvg.innerHTML=
+        `<path d="M8 5v14l11-7z"/>`;
+
     bigplay.innerHTML="▶";
 
 }
 
 function togglePlay(){
 
-    if(video.paused){
+    if(playing){
 
-        playVideo();
+        pauseVideo();
 
     }else{
 
-        pauseVideo();
+        playVideo();
 
     }
 
@@ -790,54 +1078,198 @@ function togglePlay(){
 play.onclick=togglePlay;
 bigplay.onclick=togglePlay;
 
-/* update */
+/* click */
 
-setInterval(()=>{
+wrap.addEventListener("click",(e)=>{
 
-    if(!video.duration) return;
+    if(holdSpeeding) return;
 
-    const per =
-        (video.currentTime/video.duration)*100;
+    if(
+        settings.contains(e.target) ||
+        settingsBtn.contains(e.target) ||
+        progressArea.contains(e.target) ||
+        e.target.closest(".btn") ||
+        e.target.closest(".speed") ||
+        e.target.closest(".volume")
+    ){
+        return;
+    }
 
-    progress.style.width =
-        per+"%";
+    settings.classList.remove("active");
 
-    time.innerHTML =
-        format(video.currentTime)
-        +" / "+
-        format(video.duration);
-
-},100);
-
-/* progress */
-
-progressWrap.onclick=(e)=>{
+    const now = Date.now();
 
     const rect =
-        progressWrap.getBoundingClientRect();
+        wrap.getBoundingClientRect();
 
     const x =
         e.clientX - rect.left;
 
-    const per =
-        x/rect.width;
+    const side =
+        x < rect.width/2
+        ? "left"
+        : "right";
 
-    video.currentTime =
-        video.duration*per;
+    if(
+        now-lastTap < 300 &&
+        side===lastSide
+    ){
+
+        clearTimeout(previewTimer);
+
+        if(side==="left"){
+
+            player.seekTo(
+                player.getCurrentTime()-15,
+                true
+            );
+
+            showSkip(skipLeft);
+
+        }else{
+
+            player.seekTo(
+                player.getCurrentTime()+15,
+                true
+            );
+
+            showSkip(skipRight);
+
+        }
+
+        lastTap=0;
+
+        return;
+    }
+
+    clearTimeout(previewTimer);
+
+    previewTimer=setTimeout(()=>{
+
+        if(!holdSpeeding){
+
+            togglePlay();
+
+        }
+
+    },310);
+
+    lastTap=now;
+    lastSide=side;
+
+});
+
+/* popup */
+
+function showSkip(el){
+
+    el.classList.add("show");
+
+    setTimeout(()=>{
+
+        el.classList.remove("show");
+
+    },450);
+
+}
+
+/* long press */
+
+function startHold(e){
+
+    if(
+        e.target.closest(".controls") ||
+        e.target.closest(".settings") ||
+        e.target.closest(".progress-area")
+    ){
+        return;
+    }
+
+    holdTimeout=setTimeout(()=>{
+
+        holdSpeeding=true;
+
+        prevSpeed=player.getPlaybackRate();
+
+        player.setPlaybackRate(2);
+
+        updateStatus(2);
+
+    },300);
+
+}
+
+function stopHold(){
+
+    clearTimeout(holdTimeout);
+
+    if(holdSpeeding){
+
+        holdSpeeding=false;
+
+        player.setPlaybackRate(prevSpeed);
+
+        updateStatus(prevSpeed);
+
+    }
+
+}
+
+wrap.addEventListener("mousedown",startHold);
+wrap.addEventListener("mouseup",stopHold);
+wrap.addEventListener("mouseleave",stopHold);
+
+wrap.addEventListener("touchstart",startHold);
+wrap.addEventListener("touchend",stopHold);
+
+/* mute */
+
+mute.onclick=()=>{
+
+    if(player.isMuted()){
+
+        player.unMute();
+
+        muteSvg.innerHTML=
+            `<path d="M3 10v4h4l5 5V5L7 10z"/>`;
+
+    }else{
+
+        player.mute();
+
+        muteSvg.innerHTML=
+            `<path d="M16 9l5 5m0-5l-5 5M3 10v4h4l5 5V5L7 10z"
+             stroke="white"
+             stroke-width="2"
+             fill="none"
+             stroke-linecap="round"/>`;
+
+    }
 
 };
 
-/* preview */
+/* volume */
 
-progressWrap.addEventListener("mousemove",(e)=>{
+volume.oninput=(e)=>{
 
-    if(!video.duration) return;
+    player.setVolume(e.target.value);
+
+};
+
+/* progress */
+
+function seekFromEvent(e){
 
     const rect =
-        progressWrap.getBoundingClientRect();
+        progressArea.getBoundingClientRect();
+
+    const clientX =
+        e.touches
+        ? e.touches[0].clientX
+        : e.clientX;
 
     const x =
-        e.clientX - rect.left;
+        clientX - rect.left;
 
     const per =
         Math.max(
@@ -845,8 +1277,78 @@ progressWrap.addEventListener("mousemove",(e)=>{
             Math.min(1,x/rect.width)
         );
 
+    player.seekTo(
+        player.getDuration()*per,
+        true
+    );
+
+}
+
+progressArea.addEventListener("mousedown",(e)=>{
+
+    dragging=true;
+
+    seekFromEvent(e);
+
+});
+
+document.addEventListener("mousemove",(e)=>{
+
+    if(!dragging) return;
+
+    seekFromEvent(e);
+
+});
+
+document.addEventListener("mouseup",()=>{
+
+    dragging=false;
+
+});
+
+progressArea.addEventListener("touchstart",(e)=>{
+
+    dragging=true;
+
+    seekFromEvent(e);
+
+});
+
+document.addEventListener("touchmove",(e)=>{
+
+    if(!dragging) return;
+
+    seekFromEvent(e);
+
+});
+
+document.addEventListener("touchend",()=>{
+
+    dragging=false;
+
+});
+
+/* preview */
+
+progressArea.addEventListener("mousemove",(e)=>{
+
+    const rect =
+        progressArea.getBoundingClientRect();
+
+    const x =
+        e.clientX - rect.left;
+
+    const percent =
+        Math.max(
+            0,
+            Math.min(1,x/rect.width)
+        );
+
+    const duration =
+        player.getDuration();
+
     const previewSec =
-        video.duration * per;
+        duration * percent;
 
     preview.classList.add("show");
 
@@ -856,87 +1358,42 @@ progressWrap.addEventListener("mousemove",(e)=>{
     previewTime.innerHTML =
         format(previewSec);
 
-    /*
-      現在フレーム取得
-    */
+    const frame =
+        Math.floor(previewSec/5);
 
-    const oldTime =
-        video.currentTime;
-
-    const wasPaused =
-        video.paused;
-
-    video.currentTime =
-        previewSec;
-
-    video.addEventListener(
-        "seeked",
-        function drawPreview(){
-
-            previewCtx.drawImage(
-                video,
-                0,
-                0,
-                previewCanvas.width,
-                previewCanvas.height
-            );
-
-            if(wasPaused){
-
-                video.pause();
-
-            }
-
-            video.currentTime =
-                oldTime;
-
-            video.removeEventListener(
-                "seeked",
-                drawPreview
-            );
-
-        },
-        {once:true}
-    );
+    previewImg.src =
+        `https://i.ytimg.com/sb/${videoId}/storyboard3_L2/M${frame}.jpg`;
 
 });
 
-progressWrap.addEventListener("mouseleave",()=>{
+progressArea.addEventListener("mouseleave",()=>{
 
     preview.classList.remove("show");
 
 });
 
-/* volume */
-
-volume.oninput=(e)=>{
-
-    video.volume =
-        e.target.value;
-
-};
-
-/* mute */
-
-mute.onclick=()=>{
-
-    video.muted =
-        !video.muted;
-
-    mute.innerHTML =
-        video.muted
-        ? "🔇"
-        : "🔊";
-
-};
-
 /* fullscreen */
 
-fullscreen.onclick=()=>{
+fullscreen.onclick=async()=>{
 
     if(!document.fullscreenElement){
 
-        wrap.requestFullscreen();
+        await wrap.requestFullscreen();
+
+        if(
+            screen.orientation &&
+            screen.orientation.lock
+        ){
+
+            try{
+
+                await screen.orientation.lock(
+                    "landscape"
+                );
+
+            }catch(err){}
+
+        }
 
     }else{
 
@@ -956,197 +1413,40 @@ settingsBtn.onclick=(e)=>{
 
 };
 
-document.addEventListener("click",(e)=>{
-
-    if(
-        !settings.contains(e.target) &&
-        !settingsBtn.contains(e.target)
-    ){
-        settings.classList.remove("active");
-    }
-
-});
-
 /* speed */
 
 speed.onchange=(e)=>{
 
-    video.playbackRate =
+    const val =
         Number(e.target.value);
 
-    updateStatus(
-        video.playbackRate
-    );
+    player.setPlaybackRate(val);
+
+    updateStatus(val);
 
 };
+
+/* status */
 
 function updateStatus(speed){
 
     if(speed===1){
 
-        status.innerHTML=
+        statusBox.innerHTML=
             "NORMAL";
+
+        statusBox.classList.remove("fast");
 
     }else{
 
-        status.innerHTML=
-            speed+"x SPEED";
+        statusBox.innerHTML=
+            `${speed}x SPEED`;
+
+        statusBox.classList.add("fast");
 
     }
 
 }
-
-/* skip popup */
-
-function showSkip(el){
-
-    el.classList.add("show");
-
-    setTimeout(()=>{
-
-        el.classList.remove("show");
-
-    },400);
-
-}
-
-/* click */
-
-wrap.addEventListener("click",(e)=>{
-
-    if(holdTriggered){
-        holdTriggered=false;
-        return;
-    }
-
-    if(
-        progressWrap.contains(e.target) ||
-        e.target.closest(".btn") ||
-        e.target.closest(".volume") ||
-        settings.contains(e.target)
-    ){
-        return;
-    }
-
-    const now =
-        Date.now();
-
-    const rect =
-        wrap.getBoundingClientRect();
-
-    const x =
-        e.clientX - rect.left;
-
-    const side =
-        x < rect.width/2
-        ? "left"
-        : "right";
-
-    /* double */
-
-    if(
-        now-lastTap < 300 &&
-        side===lastSide
-    ){
-
-        clearTimeout(singleClickTimer);
-
-        if(side==="left"){
-
-            video.currentTime -=15;
-
-            showSkip(skipLeft);
-
-        }else{
-
-            video.currentTime +=15;
-
-            showSkip(skipRight);
-
-        }
-
-        lastTap=0;
-
-        return;
-    }
-
-    /* single */
-
-    singleClickTimer=setTimeout(()=>{
-
-        togglePlay();
-
-    },310);
-
-    lastTap=now;
-    lastSide=side;
-
-});
-
-/* long press */
-
-function startHold(){
-
-    holdTriggered=false;
-
-    holdTimeout=setTimeout(()=>{
-
-        holdTriggered=true;
-
-        holdSpeeding=true;
-
-        prevSpeed=
-            video.playbackRate;
-
-        video.playbackRate=2;
-
-        updateStatus(2);
-
-    },300);
-
-}
-
-function stopHold(){
-
-    clearTimeout(holdTimeout);
-
-    if(holdSpeeding){
-
-        holdSpeeding=false;
-
-        video.playbackRate=
-            prevSpeed;
-
-        updateStatus(prevSpeed);
-
-    }
-
-}
-
-wrap.addEventListener(
-    "mousedown",
-    startHold
-);
-
-wrap.addEventListener(
-    "mouseup",
-    stopHold
-);
-
-wrap.addEventListener(
-    "mouseleave",
-    stopHold
-);
-
-wrap.addEventListener(
-    "touchstart",
-    startHold
-);
-
-wrap.addEventListener(
-    "touchend",
-    stopHold
-);
 
 /* keyboard */
 
@@ -1162,25 +1462,31 @@ document.addEventListener("keydown",(e)=>{
 
     if(e.code==="ArrowRight"){
 
-        video.currentTime+=5;
+        player.seekTo(
+            player.getCurrentTime()+5,
+            true
+        );
 
     }
 
     if(e.code==="ArrowLeft"){
 
-        video.currentTime-=5;
-
-    }
-
-    if(e.code==="KeyF"){
-
-        fullscreen.click();
+        player.seekTo(
+            player.getCurrentTime()-5,
+            true
+        );
 
     }
 
     if(e.code==="KeyM"){
 
         mute.click();
+
+    }
+
+    if(e.code==="KeyF"){
+
+        fullscreen.click();
 
     }
 
