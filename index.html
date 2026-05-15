@@ -864,7 +864,8 @@ let dragging=false;
 let isDraggingProgress=false;
 let ignoreWrapClick=false;
 let justClosedSettings=false;
-
+let uiTimeout;
+let isHolding=false;
 /* elements */
 
 const loader =
@@ -983,55 +984,45 @@ function onReady(){
 
 /* ui auto */
 
-let uiTimer;
+
 
 function showUI(){
 
     wrap.classList.add("show-ui");
 
-    clearTimeout(uiTimer);
+    clearTimeout(uiTimeout);
 
-    uiTimer=setTimeout(()=>{
+    uiTimeout=setTimeout(()=>{
 
-        wrap.classList.remove("show-ui");
+        if(
+            !settings.classList.contains(
+                "active"
+            )
+        ){
+
+            wrap.classList.remove(
+                "show-ui"
+            );
+
+        }
 
     },2500);
 
 }
 
-document.addEventListener("mousemove",showUI);
-document.addEventListener("touchstart",showUI);
+[
+"mousemove",
+"touchstart",
+"click",
+"keydown"
+].forEach(ev=>{
 
-/* loop */
+    document.addEventListener(
+        ev,
+        showUI
+    );
 
-function updateLoop(){
-
-    setInterval(()=>{
-
-        if(!player?.getDuration) return;
-
-        if(isDraggingProgress) return;
-
-        const cur =
-            player.getCurrentTime();
-
-        const dur =
-            player.getDuration();
-
-        const per =
-            (cur/dur)*100;
-
-        progress.style.width =
-            per+"%";
-
-        time.innerText =
-            format(cur)
-            +" / "+
-            format(dur);
-
-    },150);
-
-}
+});
 
 /* play */
 
@@ -1113,12 +1104,11 @@ bigplay.addEventListener("click",(e)=>{
 
 wrap.addEventListener("click",(e)=>{
 
+    if(isHolding) return;
+
     if(ignoreWrapClick) return;
 
     if(isDraggingProgress) return;
-
-    if(holdSpeeding) return;
-
     /*
       settings閉じた直後
     */
@@ -1249,11 +1239,14 @@ function startHold(e){
         return;
     }
 
+    isHolding=true;
+
     holdTimeout=setTimeout(()=>{
 
         holdSpeeding=true;
 
-        prevSpeed=player.getPlaybackRate();
+        prevSpeed=
+            player.getPlaybackRate();
 
         player.setPlaybackRate(2);
 
@@ -1263,6 +1256,7 @@ function startHold(e){
 
 }
 
+
 function stopHold(){
 
     clearTimeout(holdTimeout);
@@ -1271,13 +1265,30 @@ function stopHold(){
 
         holdSpeeding=false;
 
-        player.setPlaybackRate(prevSpeed);
+        player.setPlaybackRate(
+            prevSpeed
+        );
 
         updateStatus(prevSpeed);
 
+        /*
+          指離し直後のclick無効
+        */
+
+        ignoreWrapClick=true;
+
+        setTimeout(()=>{
+
+            ignoreWrapClick=false;
+
+        },200);
+
     }
 
+    isHolding=false;
+
 }
+
 
 wrap.addEventListener("mousedown",startHold);
 wrap.addEventListener("mouseup",stopHold);
