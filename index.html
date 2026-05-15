@@ -1139,6 +1139,8 @@ bigplay.addEventListener("click",(e)=>{
 
 wrap.addEventListener("click",(e)=>{
 
+    if(isHolding) return;
+
     if(ignoreWrapClick) return;
 
     if(isDraggingProgress) return;
