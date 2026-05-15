@@ -973,12 +973,14 @@ function onYouTubeIframeAPIReady(){
     });
 
 }
-
+    
 function onReady(){
 
     loader.classList.add("hide");
 
     updateLoop();
+
+    showUI(); // 初回UI表示
 
 }
 
@@ -1256,10 +1258,22 @@ function startHold(e){
 
 }
 
-
 function stopHold(){
 
     clearTimeout(holdTimeout);
+
+    /*
+      長押し解除直後は
+      クリック無効
+    */
+
+    ignoreWrapClick=true;
+
+    setTimeout(()=>{
+
+        ignoreWrapClick=false;
+
+    },180);
 
     if(holdSpeeding){
 
@@ -1271,24 +1285,11 @@ function stopHold(){
 
         updateStatus(prevSpeed);
 
-        /*
-          指離し直後のclick無効
-        */
-
-        ignoreWrapClick=true;
-
-        setTimeout(()=>{
-
-            ignoreWrapClick=false;
-
-        },200);
-
     }
 
     isHolding=false;
 
 }
-
 
 wrap.addEventListener("mousedown",startHold);
 wrap.addEventListener("mouseup",stopHold);
