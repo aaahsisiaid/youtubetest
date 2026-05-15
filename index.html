@@ -864,8 +864,9 @@ let dragging=false;
 let isDraggingProgress=false;
 let ignoreWrapClick=false;
 let justClosedSettings=false;
-let uiTimeout;
+    let uiTimeout;
 let isHolding=false;
+
 /* elements */
 
 const loader =
@@ -973,20 +974,18 @@ function onYouTubeIframeAPIReady(){
     });
 
 }
-    
+
 function onReady(){
 
     loader.classList.add("hide");
 
     updateLoop();
 
-    showUI(); // 初回UI表示
-
 }
 
 /* ui auto */
 
-
+let uiTimer;
 
 function showUI(){
 
@@ -996,10 +995,12 @@ function showUI(){
 
     uiTimeout=setTimeout(()=>{
 
+        /*
+          設定開いてる時は消さない
+        */
+
         if(
-            !settings.classList.contains(
-                "active"
-            )
+            !settings.classList.contains("active")
         ){
 
             wrap.classList.remove(
@@ -1011,8 +1012,7 @@ function showUI(){
     },2500);
 
 }
-
-[
+    [
 "mousemove",
 "touchstart",
 "click",
@@ -1025,6 +1025,40 @@ function showUI(){
     );
 
 });
+    
+document.addEventListener("mousemove",showUI);
+document.addEventListener("touchstart",showUI);
+
+/* loop */
+
+function updateLoop(){
+
+    setInterval(()=>{
+
+        if(!player?.getDuration) return;
+
+        if(isDraggingProgress) return;
+
+        const cur =
+            player.getCurrentTime();
+
+        const dur =
+            player.getDuration();
+
+        const per =
+            (cur/dur)*100;
+
+        progress.style.width =
+            per+"%";
+
+        time.innerText =
+            format(cur)
+            +" / "+
+            format(dur);
+
+    },150);
+
+}
 
 /* play */
 
@@ -1106,11 +1140,12 @@ bigplay.addEventListener("click",(e)=>{
 
 wrap.addEventListener("click",(e)=>{
 
-    if(isHolding) return;
-
     if(ignoreWrapClick) return;
 
     if(isDraggingProgress) return;
+
+    if(holdSpeeding) return;
+
     /*
       settings閉じた直後
     */
@@ -1241,14 +1276,11 @@ function startHold(e){
         return;
     }
 
-    isHolding=true;
-
     holdTimeout=setTimeout(()=>{
 
         holdSpeeding=true;
 
-        prevSpeed=
-            player.getPlaybackRate();
+        prevSpeed=player.getPlaybackRate();
 
         player.setPlaybackRate(2);
 
@@ -1262,32 +1294,15 @@ function stopHold(){
 
     clearTimeout(holdTimeout);
 
-    /*
-      長押し解除直後は
-      クリック無効
-    */
-
-    ignoreWrapClick=true;
-
-    setTimeout(()=>{
-
-        ignoreWrapClick=false;
-
-    },180);
-
     if(holdSpeeding){
 
         holdSpeeding=false;
 
-        player.setPlaybackRate(
-            prevSpeed
-        );
+        player.setPlaybackRate(prevSpeed);
 
         updateStatus(prevSpeed);
 
     }
-
-    isHolding=false;
 
 }
 
