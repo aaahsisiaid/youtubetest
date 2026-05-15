@@ -1264,7 +1264,6 @@ function showSkip(el){
 }
 
 /* long press */
-
 function startHold(e){
 
     if(
@@ -1275,11 +1274,14 @@ function startHold(e){
         return;
     }
 
+    isHolding=true;
+
     holdTimeout=setTimeout(()=>{
 
         holdSpeeding=true;
 
-        prevSpeed=player.getPlaybackRate();
+        prevSpeed=
+            player.getPlaybackRate();
 
         player.setPlaybackRate(2);
 
@@ -1289,6 +1291,7 @@ function startHold(e){
 
 }
 
+
 function stopHold(){
 
     clearTimeout(holdTimeout);
@@ -1297,14 +1300,29 @@ function stopHold(){
 
         holdSpeeding=false;
 
-        player.setPlaybackRate(prevSpeed);
+        player.setPlaybackRate(
+            prevSpeed
+        );
 
         updateStatus(prevSpeed);
 
+        /*
+          離した瞬間のclick無効
+        */
+
+        ignoreWrapClick=true;
+
+        setTimeout(()=>{
+
+            ignoreWrapClick=false;
+
+        },200);
+
     }
 
-}
+    isHolding=false;
 
+}
 wrap.addEventListener("mousedown",startHold);
 wrap.addEventListener("mouseup",stopHold);
 wrap.addEventListener("mouseleave",stopHold);
